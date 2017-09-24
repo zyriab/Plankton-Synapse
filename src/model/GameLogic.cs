@@ -10,8 +10,8 @@ public enum GameState {InPlay, CheckMate, Pat};
 
 	
 	// TODO:
-	// (Prsntr) - Implement 'Transform(Piece, PieceType)' to transform FROM Globule --OR-- TO Globule (Triastre eating)
-	// (Prsntr) - Implement 'JumpPiece()' and automatic jump managing
+	// (Prsntr?)- Implement 'JumpPiece()' and automatic jump managing
+	// (Prsntr?)- Implement Game Over, etc
 	// (Prsntr) - Implement 'StopPiece()' for trigger // Maybe StopPiece() and ProtectPiece() will be live managed by the board ?
 	// (Prsntr) - Implement 'ProtectPiece()' for trigger
 	// (Prsntr)	- Implement a move counter? How to know if that unique move has already been done? (i.e. Jumping when not powerful)
@@ -20,7 +20,7 @@ public enum GameState {InPlay, CheckMate, Pat};
 	// (Prsntr?)- Implement ErrorLog & GameLog (GameLog = Current moves summary)
 	// 			- Implement 'GetPossibleActions' for all pieces, listing all possible actions for a given piece
 	// 			- Implement free moves and pass free moves !
-	// (Prsntr?)- Implement 'CanDoAnotherMove()' (Globule, TTG, PTG) 
+	// 		    - Implement 'CanDoAnotherMove()' (Globule, TTG, PTG) 
 	// (Prsntr) - Implement "if Triastre is eaten, change eater to Globule"
 	//			- Implement proper action system
 	//			- Implement undo/redo capabilities
@@ -70,7 +70,7 @@ namespace GameModel
 			m_board.PlacePiece(new Piece(PieceType.Pentastre, Color.Black), new Square(1,6));
 			m_board.PlacePiece(new Piece(PieceType.Tetrastre, Color.Black), new Square(1,2));
 			m_board.PlacePiece(new Piece(PieceType.Tetrastre, Color.Black), new Square(1,5));
-			for(int i=0;i<7;++i)
+			for(int i=0;i<8;i++)
 				m_board.PlacePiece(new Piece(PieceType.Globule, Color.Black), new Square(2,i));
 
 			//White Side
@@ -87,14 +87,14 @@ namespace GameModel
 			m_board.PlacePiece(new Piece(PieceType.Pentastre, Color.White), new Square(6,6));
 			m_board.PlacePiece(new Piece(PieceType.Tetrastre, Color.White), new Square(6,2));
 			m_board.PlacePiece(new Piece(PieceType.Tetrastre, Color.White), new Square(6,5));
-			for(int i=0;i<8;i++) // DEBUG: Need to change all for loop from [i < 7; ++i] to [i < 8; i++]
+			for(int i=0;i<8;i++)
 				m_board.PlacePiece(new Piece(PieceType.Globule, Color.White), new Square(5,i));
 
 			m_gameState = GameState.InPlay;
 
 		}
 
-		// FIXME: GameOver (check/check-mate) not implemented?
+		// FIXME: GameOver (check/check-mate) not implemented? Prsntr?
 		public GameState GetGameState()
 		{
 			List<PieceState> actualPiecesStates = new List<PieceState>(m_board.Pieces); //Copying actual pieces states
@@ -111,6 +111,7 @@ namespace GameModel
 
 			if(m_samePositions >= 3)
 				m_gameState = GameState.Pat;
+			
 
 			return m_gameState;
 		}
@@ -182,8 +183,6 @@ namespace GameModel
 			return false;
 		}
 		
-		// FIXME: Need to finish this one !
-		// DEBUG: Need to write this one on paper, be sure about the process
 		// Returns a list of possible actions for a given piece
 		public List<ActionType> GetPossibleActions(PieceState pieceState, bool power = false)
 		{
@@ -192,6 +191,9 @@ namespace GameModel
 			List<Intersection> intrAround = new List<Intersection>();
 
 			bool nextToEnemy = false;
+
+			if(pieceState.Piece.Type != PieceType.Astree)
+				ActionList.Add(ActionType.Delete);
 
 			// If the move is a free move, possibility to skip it
 			if(pieceState.HasFreeMove)
@@ -220,7 +222,7 @@ namespace GameModel
 
 			else if(pieceState.Piece.Type == PieceType.Triglobe || pieceState.Piece.Type == PieceType.Triastre)
 			{
-				sqrAround = 
+				sqrAround = Square.GetSquaresAround(pieceState.Square);
 
 				foreach(Square sqr in sqrAround)
 					if(m_board.GetPieceState(sqr).Piece.Color != pieceState.Piece.Color)
@@ -236,14 +238,73 @@ namespace GameModel
 			{
 				intrAround = Intersection.GetIntersectionsAround(pieceState.Intersection);
 
+				List<Square> _buffPossibleSqrList = new List<Square>();
+
+				List<Square> _buffSqrList;
+				PieceState _buffPiece; 
+				PieceState _buffNextPiece;
+
+				int currentIndex;
+
 				foreach(Intersection item in intrAround)
 				{
-					// FIXME: Need to check if the 2 remaining squares are occupied by enemies as well as free 
+					_buffSqrList = Square.GetByIntersection(item);
+					_buffPiece = m_board.GetPieceState(item);
+
+					if(_buffPiece.Piece.Type == PieceType.Tetraglobe && _buffPiece.Piece.Color != pieceState.Piece.Color)
+						ActionList.Add(ActionType.Move);
+
+					foreach(Square sqrItem in _buffSqrList)
+					{
+						_buffPiece = m_board.GetPieceState(sqrItem);
+
+						if(_buffPiece != pieceState && _buffPiece.Piece.Color != pieceState.Piece.Color
+						|| _buffPiece == null)
+						_buffPossibleSqrList.Add(sqrItem);
+					}
+
+					foreach(Square sqrItem in _buffPossibleSqrList)
+					{
+						_buffPiece = m_board.GetPieceState(sqrItem);
+						currentIndex = m_board.Pieces.IndexOf(_buffPiece);
+
+						for(int i = 0; i < _buffPossibleSqrList.Count; i++)
+						{
+							if(_buffPossibleSqrList[i] == sqrItem)
+								break;
+
+							_buffNextPiece = m_board.Pieces[currentIndex+i];
+
+							if(_buffNextPiece.Square.X == _buffPiece.Square.X+1)
+								ActionList.Add(ActionType.Move);								
+
+							if(_buffNextPiece.Square.X == _buffPiece.Square.X-1)
+								ActionList.Add(ActionType.Move);
+
+							if(_buffNextPiece.Square.Y == _buffPiece.Square.Y+1)
+								ActionList.Add(ActionType.Move);
+
+							if(_buffNextPiece.Square.Y == _buffPiece.Square.Y-1)
+								ActionList.Add(ActionType.Move);
+
+							
+						}
+
+						if(_buffPiece == null) // If the Square is empty
+							ActionList.Add(ActionType.Move);
+						else if(_buffPiece.Piece.Color != pieceState.Piece.Color)
+							ActionList.Add(ActionType.Move);
+					}
+					
 				}
+			} // endof Tetraglobe
 
-				
-
+			if(pieceState.Piece.Type == PieceType.Tetrastre)
+			{
+				// FIXME: Continue implementation here
 			}
+
+			return ActionList;
 		}
 
 
@@ -298,7 +359,7 @@ namespace GameModel
 			toSqrs[3].X = (toIntr.A+1);
 			toSqrs[3].Y = (toIntr.B+1);
 
-			for(int i = 0; i < 4; ++i)
+			for(int i = 0; i < 4; i++)
 			{
 				if(CheckMoveIsValid(piece, fromSqrs[i], toSqrs[i], power) == false)
 					return false;
@@ -439,9 +500,38 @@ namespace GameModel
 			return true;
 		}
 
+		// FIXME: Stack action is part of the Action managing system (undo/redo)
+
+
+		// StackAction is called once an action as been performed by the user
+		// It is used to store the user's actions so he's able to keep track and undo those actions
 		public void StackAction(PieceState pieceState, Square fromSqr, Square toSqr, ActionType actionType)
+		{
+			m_ActionStack.Push(new Action(pieceState, fromSqr, toSqr, actionType));
+		}
+
+		public void StackAction(PieceState pieceState, Intersection fromIntr, Intersection toIntr, ActionType actionType)
+		{
+			m_ActionStack.Push(new Action(pieceState, fromIntr, toIntr, actionType));
+		}
+
 		public void StackAction(Piece piece, Square fromSqr, Square toSqr, ActionType actionType)
+		{
+			PieceState _bufferPiece = m_board.GetPieceState(piece);
+			m_ActionStack.Push(new Action(_bufferPiece, fromSqr, toSqr, actionType));
+		}
+
 		public void StackAction(Piece piece, Intersection fromIntr, Intersection toIntr, ActionType actionType)
+		{
+			PieceState _buffPiece = m_board.GetPieceState(piece);
+			m_ActionStack.Push(new Action(_buffPiece, fromIntr, toIntr, actionType));
+		}
+
+		// DEBUG: Err, need to fix this or abandon the idea
+		public void UndoAction()
+		{
+			m_redoAction = m_ActionStack.Pop();
+		}
 
 		// DEBUG: This need a dedicated file
 

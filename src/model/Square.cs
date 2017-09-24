@@ -168,7 +168,7 @@ namespace GameModel
 
 				intersectionsCoord.Add( new Intersection(X, Y) );
 				if(Y-1 <= 7 && Y-1 >= 0)
-					intersectionsCoord.Add( new Intersection(X, (Y-1) );
+					intersectionsCoord.Add( new Intersection(X, (Y-1)) );
 				if(X-1 <= 7 && X-1 >= 0)
 					intersectionsCoord.Add( new Intersection((X-1), Y) );
 				if(X-1 <= 7 && X-1 >= 0 && Y-1 <= 7 && Y-1 >= 0)

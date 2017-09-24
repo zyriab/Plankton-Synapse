@@ -209,45 +209,49 @@ namespace GameModel
 
 			}
 		}
-			
-		// DEBUG: Need to double check, not sure for the Square/Intersection choice
-		public void TransformPiece(PieceType type = PieceType.Globule, Intersection toIntr = null, Square toSqr = null, params Piece[] piece)
+					
+		// Transforms a given piece to another
+		public void TransformPiece(PieceType type, Intersection toIntr, Square toSqr, params Piece[] piece)
 		{
-			PieceState pBuffer = GetPieceState(piece[m_pieces.Count-1]);
+			PieceState pBuffer = GetPieceState(piece[piece.Length-1]);
 
-			// If we're not transforming Globules to some other piece, we do the contrary
+			// If we're not transforming Globules to some other piece
 			if(piece[0].Type != PieceType.Globule && type == PieceType.Globule && piece.Length == 1)
 			{
-				m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[m_pieces.Count-1].Color), pBuffer.Square);
+				m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), pBuffer.Square);
 				return;
 			}
 
+			// Transforming one Piece to a given Square
 			if(piece.Length == 1 && toSqr != null)
 			{
 				if(toSqr.X <= 7 && toSqr.X >= 0 && toSqr.Y <= 7 && toSqr.Y >= 0)
-					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[m_pieces.Count-1].Color), toSqr);
+					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), toSqr);
 				return;
 			}
 
-			if(piece.Length != 1 && toIntr != null)
+			// Changing multiple Globules to a Tetraglobe
+			if(piece.Length > 1 && toIntr != null)
 			{
 				List<PieceState> pieceList = new List<PieceState>();
 
+				// Getting all PieceStates of our given Pieces
 				foreach(Piece item in piece)
 				{
 					pieceList.Add(GetPieceState(item));
 				}
 
+				// Removing from the playing pieces list all pieces, EXCEPT THE LAST ONE
 				for(int i = 0; i < pieceList.Count-1; i++)
 				{
-					m_pieces.Remove(pieceList[i]); // 0, 1, 2
+					m_pieces.Remove(pieceList[i]);
 				}
 
 				if(type != PieceType.Tetraglobe)
-					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[m_pieces.Count-1].Color), toSqr);
+					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), toSqr);
 
 				if(type == PieceType.Tetraglobe && toIntr.A <= 7 && toIntr.A >= 0 && toIntr.B <= 7 && toIntr.B >= 0)
-					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[m_pieces.Count-1].Color), toIntr);
+					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), toIntr);
 			}
 
 			return;

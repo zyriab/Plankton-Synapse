@@ -24,7 +24,7 @@ namespace GameModel
 		}
 
 		// Gets all intersections around a given Square
-		public static List<Intersection> GetBySquare(Square intr)
+		public static List<Intersection> GetBySquare(Square sqr)
 		{
 			List<Intersection> intrList = new List<Intersection>();
 
@@ -42,7 +42,6 @@ namespace GameModel
 				return null;
 		}
 
-		// DEBUG: REALLY NEED TO PROOF-READ THIS ! PROBABLY A NASTY HACK -- I HAVEN'T SLEPT YET
 		public static List<Intersection> GetIntersectionsAround(Intersection intr, bool diagonal = false)
 		{
 			List<Intersection> intrAround = new List<Intersection>();
@@ -54,7 +53,7 @@ namespace GameModel
 			if(intr.A-1 <= 7 && intr.A-1 >= 0) // left
 				intrAround.Add( new Intersection(intr.A-1, intr.B) );
 			if(intr.A+1 <= 7 && intr.A+1 >= 0) // right
-				intrAround.Add( new Intersection(intr.A-1, intr.B) );
+				intrAround.Add( new Intersection(intr.A+1, intr.B) );
 
 			if(diagonal)
 			{
