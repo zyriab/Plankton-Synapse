@@ -10,27 +10,22 @@ public enum GameState {InPlay, CheckMate, Pat};
 
 	
 	// TODO:
-	// (Prsntr?)- Implement 'JumpPiece()' and automatic jump managing
+	// (Prsntr?)- Implement/Figure out 'JumpPiece()' and automatic jump managing
 	// (Prsntr?)- Implement Game Over, etc
-	// (Prsntr) - Implement 'StopPiece()' for trigger // Maybe StopPiece() and ProtectPiece() will be live managed by the board ?
-	// (Prsntr) - Implement 'ProtectPiece()' for trigger
-	// (Prsntr)	- Implement a move counter? How to know if that unique move has already been done? (i.e. Jumping when not powerful)
-	//          - Implement Apoptose
-	//          - Implement Rosace's second move
-	// (Prsntr?)- Implement ErrorLog & GameLog (GameLog = Current moves summary)
-	// 			- Implement free moves and pass free moves !
-	// 		    - Implement 'CanDoAnotherMove()' (Globule, TTG, PTG) 
-	// (Prsntr) - Implement "if Triastre is eaten, change eater to Globule"
-	//			- Implement proper action system
-	// (CANCEL) - Implement undo/redo capabilities
+	// (Prsntr) - Implement/Figure out 'StopPiece()' for trigger // Maybe StopPiece() and ProtectPiece() will be live managed by the board or Presenter ?
+	// (Prsntr) - Implement/Figure out 'ProtectPiece()' for trigger
+	// (Prsntr) - Implement/Figure out ErrorLog & GameLog (GameLog = Current moves summary)
+	// (Prsntr) - Implement/Figure out free moves and pass free moves !
+	//			- Implement/Figure out proper action system
 
 namespace GameModel
 {
-	
+
 	// Game Logic engine, used to ensure a move stays within the board boundaries
 	// Then calling class MoveValidator to get the legal moves depending on PieceType
 	// At last, checking the destination
 	// Get the current gameState and also sets up the board
+	// Get the possible actions for a given piece
 	// This class and NO OTHER makes use of class MoveValidator
 
 	public class GameLogic
@@ -93,8 +88,8 @@ namespace GameModel
 
 		}
 
-		// FIXME: GameOver (check/check-mate) not implemented? Or does Presenter live-check it (if no Astree -> game over) ?
-		public GameState GetGameState()
+		// Checks for Pat and then returns the actual GameState
+		public GameState CheckPat()
 		{
 			List<PieceState> actualPiecesStates = new List<PieceState>(m_board.Pieces); //Copying actual pieces states
 
@@ -183,8 +178,10 @@ namespace GameModel
 		}
 		
 		// Returns a list of possible actions for a given piece
-		public List<ActionType> GetPossibleActions(PieceState pieceState, bool power = false)
+		public List<ActionType> GetPossibleActions(Piece piece, bool power = false)
 		{
+			PieceState pieceState = m_board.GetPieceState(piece);
+
 			List<ActionType> ActionList = new List<ActionType>();
 			List<Square> sqrAround = new List<Square>();
 			List<Intersection> intrAround = new List<Intersection>();
@@ -212,6 +209,8 @@ namespace GameModel
 				// If the piece is powerful and last action has been made by an enemy
 				if(power && m_ActionStack.Peek().PieceState.Piece.Color != pieceState.Piece.Color)
 				{
+					//DEBUG: Probably, this is more suited in Presenter, not using 'hasFreeMove'
+
 					// Giving all allied (and this one) Globules a free move, letting the player chose which one he'll play 
 					foreach(PieceState pState in m_board.Pieces)
 					{
@@ -565,7 +564,7 @@ namespace GameModel
 			return ActionList;
 		} // endof GetPossibleActions()
 
-
+		// HACK: Rosace's second move has the same rules behaviour as the Globule ;)
 		public bool CheckMoveIsValid(Piece piece, Square fromSqr, Square toSqr, bool power)
 		{
 			// First checking if user input is correct. (i.e. within the board boundaries)

@@ -14,8 +14,6 @@ namespace GameModel
 		List<Square> m_squareList; //if Tetraglobe
 		Intersection m_intersection;
 
-		int m_moveCounter;
-
 		bool m_hasFreeMove;
 
 		public PieceState()
@@ -29,7 +27,6 @@ namespace GameModel
 			m_isActive = true;
 			m_hasFreeMove = false;
 
-			m_moveCounter = 0;
 
 //			if(piece.Type != PieceType.Empty)
 //				m_isActive = true;
@@ -43,7 +40,6 @@ namespace GameModel
 			m_isActive = true;
 			m_hasFreeMove = false;
 
-			m_moveCounter = 0;
 
 //			if(piece.Type != PieceType.Empty)
 //				m_isActive = true;
@@ -124,19 +120,6 @@ namespace GameModel
 		{
 			get {return m_hasFreeMove;}
 			set {m_hasFreeMove = value;}
-		}
-
-
-		public int MoveCounter
-		{
-			get
-			{
-				return m_moveCounter;
-			}
-			set
-			{
-				MoveCounter = value;
-			}
 		}
 
 	} //endof class PieceState
