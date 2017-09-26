@@ -93,7 +93,7 @@ namespace GameModel
 
 		}
 
-		// FIXME: GameOver (check/check-mate) not implemented? Prsntr?
+		// FIXME: GameOver (check/check-mate) not implemented? Or does Presenter live-check it (if no Astree -> game over) ?
 		public GameState GetGameState()
 		{
 			List<PieceState> actualPiecesStates = new List<PieceState>(m_board.Pieces); //Copying actual pieces states
@@ -461,7 +461,7 @@ namespace GameModel
 						}
 						
 						// Right
-						if(nxtSqrItem.X == pieceState.Square.X+1)		
+						else if(nxtSqrItem.X == pieceState.Square.X+1)		
 						{
 							_bufferSquare.X = nxtSqrItem.X+1; // Going right
 							_bufferSquare.Y = nxtSqrItem.Y;
@@ -475,10 +475,10 @@ namespace GameModel
 						}
 
 						// Top
-						if(nxtSqrItem.Y == pieceState.Square.Y+1)		
+						else if(nxtSqrItem.Y == pieceState.Square.Y+1)		
 						{
 							_bufferSquare.X = nxtSqrItem.X;
-							_bufferSquare.Y = nxtSqrItem.Y+1; // going top
+							_bufferSquare.Y = nxtSqrItem.Y+1; // Going top
 
 							// If the Square is empty or contains an enemy, it is a legal move
 							if(sqrAroundAround.Contains(_bufferSquare))
@@ -489,7 +489,7 @@ namespace GameModel
 						}
 
 						// Down
-						if(nxtSqrItem.Y == pieceState.Square.Y-1)		
+						else if(nxtSqrItem.Y == pieceState.Square.Y-1)		
 						{
 							_bufferSquare.X = nxtSqrItem.X;
 							_bufferSquare.Y = nxtSqrItem.Y-1; // Going down
@@ -503,10 +503,10 @@ namespace GameModel
 						}
 
 						// Top-Left
-						if(nxtSqrItem.X == pieceState.Square.X-1 && nxtSqrItem.Y == pieceState.Square.Y+1)		
+						else if(nxtSqrItem.X == pieceState.Square.X-1 && nxtSqrItem.Y == pieceState.Square.Y+1)		
 						{
 							_bufferSquare.X = nxtSqrItem.X-1; // Going left
-							_bufferSquare.Y = nxtSqrItem.Y+1; // Goin top
+							_bufferSquare.Y = nxtSqrItem.Y+1; // Going top
 
 							// If the Square is empty or contains an enemy, it is a legal move
 							if(sqrAroundAround.Contains(_bufferSquare))
@@ -517,7 +517,7 @@ namespace GameModel
 						}
 
 						// Top-Right
-						if(nxtSqrItem.X == pieceState.Square.X+1 && nxtSqrItem.Y == pieceState.Square.Y+1)
+						else if(nxtSqrItem.X == pieceState.Square.X+1 && nxtSqrItem.Y == pieceState.Square.Y+1)
 						{
 							_bufferSquare.X = nxtSqrItem.X+11; // Going right
 							_bufferSquare.Y = nxtSqrItem.Y; // Going top
@@ -531,7 +531,7 @@ namespace GameModel
 						}
 						
 						// Down-Left
-						if(nxtSqrItem.X == pieceState.Square.X-1 && nxtSqrItem.Y == pieceState.Square.Y-1)		
+						else if(nxtSqrItem.X == pieceState.Square.X-1 && nxtSqrItem.Y == pieceState.Square.Y-1)		
 						{
 							_bufferSquare.X = nxtSqrItem.X-1; // Going left
 							_bufferSquare.Y = nxtSqrItem.Y; // Going down
@@ -545,7 +545,7 @@ namespace GameModel
 						}
 
 						// Down-Right
-						if(nxtSqrItem.X == pieceState.Square.X+1)		
+						else if(nxtSqrItem.X == pieceState.Square.X+1)		
 						{
 							_bufferSquare.X = nxtSqrItem.X+1; // Going right
 							_bufferSquare.Y = nxtSqrItem.Y; // Going down
@@ -788,13 +788,7 @@ namespace GameModel
 			m_ActionStack.Push(new Action(_bufferPiece, fromIntr, toIntr, actionType));
 		}
 
-		// DEBUG: Err, need to fix this or abandon the idea -- STILL NEED THE STACK ACTION THO !
-		// public void UndoAction()
-		// {
-		// 	m_redoAction = m_ActionStack.Pop();
-		// }
-
-		// DEBUG: This need a dedicated file
+		// FIXME: This need a dedicated file
 
 		// This class will be used to store previously done actions, permitting to undo and redo moves or just access them
 		protected class Action
