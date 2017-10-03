@@ -269,26 +269,19 @@ namespace GameModel
 		// Remove piece on Square
 		public void RemovePiece(Square square)
 		{
-			PieceState removedPiece;
+			PieceState removedPiece = m_pieces.Find(x => x.Square == square);
 
-			for(int i=0; i<m_pieces.Count; ++i)
+			if(m_pieces.Contains(removedPiece))
 			{
-				removedPiece = m_pieces[i];
-
-				if (removedPiece.Square == square) 
-				{
-					removedPiece.IsActive = false;
-					m_pieces.Remove(removedPiece);
-				}
+				removedPiece.IsActive = false;
+				m_pieces.Remove(removedPiece);
 			}
 		}
 
 		// Remove piece on Intersection
 		public void RemovePiece(Intersection intersection)
 		{
-			PieceState removedPiece;
-
-			removedPiece = m_pieces.Find(item => item.Intersection == intersection);
+			PieceState removedPiece = m_pieces.Find(item => item.Intersection == intersection);
 
 			if (m_pieces.Contains(removedPiece)) 
 			{
@@ -300,17 +293,12 @@ namespace GameModel
 		// Remove piece by Piece
 		public void RemovePiece(Piece piece)
 		{
-			PieceState removedPiece;
+			PieceState removedPiece = m_pieces.Find(x => x.Piece == piece);
 
-			for(int i=0; i<m_pieces.Count; ++i)
+			if(m_pieces.Contains(removedPiece))
 			{
-				removedPiece = m_pieces[i];
-
-				if (removedPiece.Piece == piece) 
-				{
-					removedPiece.IsActive = false;
-					m_pieces.Remove(removedPiece);
-				}
+				removedPiece.IsActive = false;
+				m_pieces.Remove(removedPiece);
 			}
 		}
 
