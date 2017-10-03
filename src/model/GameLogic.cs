@@ -348,7 +348,7 @@ namespace GameModel
 					// If there's any ally other than Pentaglobe on the board
 					if(item.Piece.Type != PieceType.Pentaglobe && item.Piece.Color == pieceState.Piece.Color)
 					{
-						ActionList.Add(ActionType.Swap);
+						ActionList.Add(ActionType.Move); // Swap
 						break;
 					}
 				}

@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-
-#if DEBUG
-using System.Diagnostics; // Only to be used in DEBUG mode
-#endif
-
+using System.Diagnostics;
 
 namespace GameModel
 {
@@ -30,7 +26,7 @@ namespace GameModel
 			List<Square> freeSqrList = new List<Square>();
 
 			if(intrListBuffer == null)
-				Debug.WriteLine("Error in Board.cs, l:41 : decl. l:39. Intersection.GetBySquare(sqr) has returned a null value");
+				Debug.WriteLine(string.Format("Error in Board.cs, l:41 : decl. l:39. Intersection.GetBySquare(sqr) has returned a null value"));
 
 			for(int i = 0; i < intrListBuffer.Count; i++)
 			{
@@ -58,7 +54,7 @@ namespace GameModel
 			PieceState pBuffer; // Will be used to temporarily store a given PieceState, needed to access Squares
 
 			if(sqrListBuffer == null)
-				Debug.WriteLine("Error in Board.cs, l:65 : decl. l:63.Intersection.GetBySquare(sqr) has returned a null value");
+				Debug.WriteLine(string.Format("Error in Board.cs, l:65 : decl. l:63.Intersection.GetBySquare(sqr) has returned a null value"));
 
 			for(int i = 0; i < sqrListBuffer.Count; i++)
 			{	
@@ -87,7 +83,7 @@ namespace GameModel
 			PieceState pBuffer;
 
 			if(intrListBuffer == null)
-				Debug.WriteLine("Error in Board.cs, l:91 : decl. l:88. Intersection.GetBySquare(sqr) has returned a null value");
+				Debug.WriteLine(string.Format("Error in Board.cs, l:91 : decl. l:88. Intersection.GetBySquare(sqr) has returned a null value"));
 
 			for(int i = 0; i < intrListBuffer.Count; i++) // Getting four Lists of four Squares
 			{
@@ -186,6 +182,7 @@ namespace GameModel
 
 		}
 			
+		// FIXME: Need to put this process on paper (from View to Model), to be clear about how it will be done (choosing, etc)
 		// Swap piece1 with piece2, in case square is choosen by player (Tetraglobe swap)
 		public void SwapPiece(Piece piece1, Piece piece2, Square toSqr, Intersection toIntr)
 		{
@@ -219,19 +216,17 @@ namespace GameModel
 			if(piece[0].Type != PieceType.Globule && type == PieceType.Globule && piece.Length == 1)
 			{
 				m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), pBuffer.Square);
-				return;
 			}
 
 			// Transforming one Piece to a given Square
-			if(piece.Length == 1 && toSqr != null)
+			else if(piece.Length == 1 && toSqr != null)
 			{
 				if(toSqr.X <= 7 && toSqr.X >= 0 && toSqr.Y <= 7 && toSqr.Y >= 0)
 					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), toSqr);
-				return;
 			}
 
 			// Changing multiple Globules to a Tetraglobe
-			if(piece.Length > 1 && toIntr != null)
+			else if(piece.Length > 1 && toIntr != null)
 			{
 				List<PieceState> pieceList = new List<PieceState>();
 
@@ -250,12 +245,9 @@ namespace GameModel
 				if(type != PieceType.Tetraglobe)
 					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), toSqr);
 
-				if(type == PieceType.Tetraglobe && toIntr.A <= 7 && toIntr.A >= 0 && toIntr.B <= 7 && toIntr.B >= 0)
+				else if(type == PieceType.Tetraglobe && toIntr.A <= 7 && toIntr.A >= 0 && toIntr.B <= 7 && toIntr.B >= 0)
 					m_pieces[m_pieces.IndexOf(pBuffer)] = new PieceState(new Piece(type, piece[0].Color), toIntr);
 			}
-
-			return;
-
 		}
 
 		// Move given Piece from Intersection to Intersection
@@ -337,9 +329,8 @@ namespace GameModel
 					return item;
 			}
 
-#if DEBUG
-			Debug.WriteLine("GetPieceState(PieceState) : PieceState {0} does not exist in List<PieceState> m_pieces.", piece.ToString());
-#endif
+			Debug.WriteLine(string.Format("GetPieceState(PieceState) : PieceState {0} does not exist in List<PieceState> m_pieces.", piece.ToString()));
+
 			return null;
 		}
 
@@ -350,16 +341,16 @@ namespace GameModel
 			{
 				if(item.Piece == piece)
 				{
-#if DEBUG
+
 					Debug.WriteLine("Encore un !");
-#endif
+
 					return item;
 				}
 			}
 
-#if DEBUG
-			Debug.WriteLine("GetPieceState(Piece) : No PieceState containing {0} exists in List<PieceState> m_pieces.", piece.ToString());
-#endif
+
+			Debug.WriteLine(string.Format("GetPieceState(Piece) : No PieceState containing {0} exists in List<PieceState> m_pieces.", piece.ToString()));
+
 			return null;
 		}
 
@@ -372,9 +363,9 @@ namespace GameModel
 					return item;
 			}
 
-#if DEBUG
-			Debug.WriteLine("GetPieceState(Square) : No PieceState containing {0} exists in List<PieceState> m_pieces.", sqr.ToString());
-#endif
+
+			Debug.WriteLine(string.Format("GetPieceState(Square) : No PieceState containing {0} exists in List<PieceState> m_pieces.", sqr.ToString()));
+
 			return null;
 		}
 
@@ -387,9 +378,8 @@ namespace GameModel
 					return item;		
 			}
 
-#if DEBUG
-			Debug.WriteLine("GetPieceState(Intersection) : No PieceState containing {0} exists in List<PieceState> m_pieces.", intr.ToString());
-#endif
+			Debug.WriteLine(string.Format("GetPieceState(Intersection) : No PieceState containing {0} exists in List<PieceState> m_pieces.", intr.ToString()));
+
 			return null;
 		}
 
@@ -408,9 +398,8 @@ namespace GameModel
 					return item;
 			}
 
-#if DEBUG
-			Debug.WriteLine("GetPieceState(int, int, bool) : No PieceState containing Square({0}, {1}) exists in List<PieceState> m_pieces.", x.ToString(), y.ToString());
-#endif
+			Debug.WriteLine(string.Format("GetPieceState(int, int, bool) : No PieceState containing Square({0}, {1}) exists in List<PieceState> m_pieces.", x.ToString(), y.ToString()));
+
 			return null;
 		}
 
