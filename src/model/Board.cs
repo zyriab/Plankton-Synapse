@@ -170,19 +170,16 @@ namespace GameModel
 		{
 			PieceState pieceState1 = GetPieceState(piece1);
 			PieceState pieceState2 = GetPieceState(piece2);
-			PieceState bufferPiece = pieceState2;
+			PieceState _bufferPiece = pieceState2;
 		
 			// pieceState2 = pieceState1
 			pieceState2.Square = pieceState1.Square;
-			pieceState2.Piece = pieceState1.Piece;
 
 			// pieceState1 = pieceState2
-			pieceState1.Square = bufferPiece.Square;
-			pieceState1.Piece = bufferPiece.Piece;
+			pieceState1.Square = _bufferPiece.Square;
 
 		}
 			
-		// FIXME: Need to put this process on paper (from View to Model), to be clear about how it will be done (choosing, etc)
 		// Swap piece1 with piece2, in case square is choosen by player (Tetraglobe swap)
 		public void SwapPiece(Piece piece1, Piece piece2, Square toSqr, Intersection toIntr)
 		{
@@ -194,15 +191,12 @@ namespace GameModel
 			{
 				PieceState pieceState1 = GetPieceState(piece1);
 				PieceState pieceState2 = GetPieceState(piece2);
-				PieceState bufferPiece = pieceState2;
 
 				// pieceState2 = pieceState1
 				pieceState2.Square = toSqr;
-				pieceState2.Piece = pieceState1.Piece;
 
 				// pieceState1 = pieceState2
 				pieceState1.Intersection = toIntr;
-				pieceState1.Piece = bufferPiece.Piece;
 
 			}
 		}
@@ -341,9 +335,6 @@ namespace GameModel
 			{
 				if(item.Piece == piece)
 				{
-
-					Debug.WriteLine("Encore un !");
-
 					return item;
 				}
 			}
