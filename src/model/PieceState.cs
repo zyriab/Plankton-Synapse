@@ -5,7 +5,7 @@ namespace GameModel
 {
 
 	//Contains vital informations about a given piece
-	// The piece itself, its state (dead or alive) and its current Square
+	// The piece itself, its state (dead or alive) and its current position
 	public class PieceState
 	{
 		Piece m_piece;
