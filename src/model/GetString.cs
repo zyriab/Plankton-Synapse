@@ -1,9 +1,5 @@
-﻿using System;
-
-
-namespace GameModel
+﻿namespace GameModel
 {
-
 	// Utility class, returns string for given enum !
 	public static class GetString
 	{
@@ -35,6 +31,37 @@ namespace GameModel
 			}
 		}
 
+		public static string GetStr(ActionType action)
+		{
+			switch (action)
+			{
+					case ActionType.Create:
+						return "creates";
+					case ActionType.DeleteLastSwapped:
+						return "gains a free move";
+					case ActionType.DeleteThis:
+						return "perform apoptosis";
+					case ActionType.Move:
+						return "moves";
+					case ActionType.Swap:
+						return "swaps positions between";
+					case ActionType.Transform:
+						return "morphs";
+					default:
+						return " ";
+			}
+		}
+		
+		public static string GetStr(Square sqr)
+		{
+			return "[" + sqr.X + ", " + sqr.Y + "]";
+		}
+
+		public static string GetStr(Intersection intr)
+		{
+			return "[" + intr.A + ", " + intr.B + "]";
+		}
+		
 		public static string GetStr(Color color)
 		{
 			switch(color)

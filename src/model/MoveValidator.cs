@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace GameModel
+﻿namespace GameModel
 {
 	
 	// Checks if a given move is legal, depending on the piece's capabilities
 	// Return boolean value depending on PieceType, departure square, arrival square and power
-	static class MoveValidator
+	internal static class MoveValidator
 	{
 		static public bool MoveIsValid(Piece piece, Square fromSqr, Square toSqr, bool power)
 		{

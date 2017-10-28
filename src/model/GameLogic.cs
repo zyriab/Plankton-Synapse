@@ -1,12 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
+﻿using System.Linq;
 using System.Collections.Generic;
 
-public enum PieceType {Globule, Triglobe, Triastre, Tetraglobe, Tetrastre, Pentaglobe, Pentastre, Rosace, Astree, None};
-public enum ActionType {Move, Create, Transform, Swap, DeleteThis, DeleteLastSwapped, FreeMove, SkipTurn};
-public enum Color {Black, White};
-public enum GameState {InPlay, CheckMate, Pat};
+public enum PieceType {Globule, Triglobe, Triastre, Tetraglobe, Tetrastre, Pentaglobe, Pentastre, Rosace, Astree, None}
+public enum ActionType {Move, Create, Transform, Swap, DeleteThis, DeleteLastSwapped, SkipTurn}
+public enum Color {Black, White}
+public enum GameState {InPlay, CheckMate, Pat}
 
 	
 	// TODO:
@@ -30,19 +28,19 @@ namespace GameModel
 
 	public class GameLogic
 	{
-		Board m_board; // Reference to actual board
-		GameState m_gameState; // Reference to actual game state (check, pat, etc)
+		private Board m_board; // Reference to actual board
+		private GameState m_gameState; // Reference to actual game state (check, pat, etc)
 
-		Stack<Action> m_ActionStack; // Used to undo actions and to access them
-		Action m_redoAction; // Used to redo last undoed action
+		private Stack<Action> m_actionStack; // Used to undo actions and to access them
+		private Action m_redoAction; // Used to redo last undoed action
 
-		List<List<PieceState>> m_compareStateList; // Used to compare with actual board. For PAT
-		int m_lastIndex, m_samePositions; // Used for PAT purpose
+		private List<List<PieceState>> m_compareStateList; // Used to compare with actual board. For PAT
+		private int m_lastIndex, m_samePositions; // Used for PAT purpose
 
 		public GameLogic(Board board)
 		{
 			m_board = board;
-			m_ActionStack = new Stack<Action>();
+			m_actionStack = new Stack<Action>();
 			m_compareStateList = new List<List<PieceState>>();
 			m_lastIndex = 0;
 			m_samePositions = 0;
@@ -106,7 +104,8 @@ namespace GameModel
 			if(m_samePositions >= 3)
 				m_gameState = GameState.Pat;
 			
-
+			m_compareStateList.Add(actualPiecesStates);
+			
 			return m_gameState;
 		}
 
@@ -182,18 +181,18 @@ namespace GameModel
 		{
 			PieceState pieceState = m_board.GetPieceState(piece);
 
-			List<ActionType> ActionList = new List<ActionType>();
+			List<ActionType> actionList = new List<ActionType>();
 			List<Square> sqrAround = new List<Square>();
 			List<Intersection> intrAround = new List<Intersection>();
 
 			bool nextToEnemy = false;
 
-			if(pieceState.Piece.Type != PieceType.Astree)
-				ActionList.Add(ActionType.DeleteThis);
-
 			// If the move is a free move, possibility to skip it
 			if(pieceState.HasFreeMove)
-				ActionList.Add(ActionType.SkipTurn);
+				actionList.Add(ActionType.SkipTurn);
+			
+			if(pieceState.Piece.Type != PieceType.Astree)
+				actionList.Add(ActionType.DeleteThis);
 
 			// Return possible actions for a given Globule
 			if(pieceState.Piece.Type == PieceType.Globule)
@@ -202,18 +201,21 @@ namespace GameModel
 
 				// First checking if any Square around is free
 				sqrAround = m_board.GetFreeSquares(pieceState.Square);
+				
+				if(CanTransform(pieceState.Piece))
+					actionList.Add(ActionType.Transform);
+				
 				if(!sqrAround.Any()) // If sqrAround is NOT empty - Meaning there's free Square(s) around
-					ActionList.Add(ActionType.Create); // Add the creating action to the possible actions list
-				if(this.CanTransform(pieceState.Piece))
-					ActionList.Add(ActionType.Transform);
+					actionList.Add(ActionType.Create); // Add the creating action to the possible actions list
+				
 				// If the piece is powerful and last action has been made by an enemy
-				if(power && m_ActionStack.Peek().PieceState.Piece.Color != pieceState.Piece.Color)
+				if(power && m_actionStack.Peek().PieceState.Piece.Color != pieceState.Piece.Color)
 				{
-					//DEBUG: Probably, this is more suited in Presenter, not using 'hasFreeMove'
-
 					// Giving all allied (and this one) Globules a free move, letting the player chose which one he'll play 
 					foreach(PieceState pState in m_board.Pieces)
 					{
+						// All free moves & all will probably be handeled in live by the presenter
+						
 						if(pState.Piece.Type == PieceType.Globule)
 							pState.HasFreeMove = true;
 					}
@@ -231,9 +233,9 @@ namespace GameModel
 						nextToEnemy = true;
 
 				if(sqrAround.Count != 0) // If there's free Squares around
-					ActionList.Add(ActionType.Move);
-				if(nextToEnemy)
-					ActionList.Add(ActionType.Move);
+					actionList.Add(ActionType.Move);
+				if(nextToEnemy && !actionList.Contains(ActionType.Move))
+					actionList.Add(ActionType.Move);
 			} // endof Triglobe || Triastre
 
 			else if(pieceState.Piece.Type == PieceType.Tetraglobe)
@@ -255,8 +257,11 @@ namespace GameModel
 					_buffSqrList = Square.GetByIntersection(item);
 					_bufferPiece = m_board.GetPieceState(item);
 
-					if(_bufferPiece.Piece.Type == PieceType.Tetraglobe && _bufferPiece.Piece.Color != pieceState.Piece.Color)
-						ActionList.Add(ActionType.Move);
+					if (_bufferPiece.Piece.Type == PieceType.Tetraglobe && _bufferPiece.Piece.Color != pieceState.Piece.Color)
+					{
+						actionList.Add(ActionType.Move);
+						break;
+					}
 
 					foreach(Square sqrItem in _buffSqrList)
 					{
@@ -279,27 +284,41 @@ namespace GameModel
 
 							_buffNextPiece = m_board.Pieces[currentIndex+i];
 
-							if(_buffNextPiece.Square.X == _bufferPiece.Square.X+1)
-								ActionList.Add(ActionType.Move);								
+							if (_buffNextPiece.Square.X == _bufferPiece.Square.X + 1)
+							{
+								actionList.Add(ActionType.Move);
+								break;
+							}
 
-							if(_buffNextPiece.Square.X == _bufferPiece.Square.X-1)
-								ActionList.Add(ActionType.Move);
+							if (_buffNextPiece.Square.X == _bufferPiece.Square.X - 1)
+							{
+								actionList.Add(ActionType.Move);
+								break;
+							}
 
-							if(_buffNextPiece.Square.Y == _bufferPiece.Square.Y+1)
-								ActionList.Add(ActionType.Move);
+							if (_buffNextPiece.Square.Y == _bufferPiece.Square.Y + 1)
+							{
+								actionList.Add(ActionType.Move);
+								break;
+							}
 
-							if(_buffNextPiece.Square.Y == _bufferPiece.Square.Y-1)
-								ActionList.Add(ActionType.Move);
+							if (_buffNextPiece.Square.Y == _bufferPiece.Square.Y - 1)
+							{
+								actionList.Add(ActionType.Move);
+								break;
+							}
 
 							
 						}
 
-						if(_bufferPiece == null) // If the Square is empty
-							ActionList.Add(ActionType.Move);
-						else if(_bufferPiece.Piece.Color != pieceState.Piece.Color)
-							ActionList.Add(ActionType.Move);
+						if (_bufferPiece == null) // If the Square is empty
+						{
+							actionList.Add(ActionType.Move);
+							break;
+						}
+						if(_bufferPiece.Piece.Color != pieceState.Piece.Color)
+							actionList.Add(ActionType.Move);
 					}
-					
 				}
 			} // endof Tetraglobe
 
@@ -321,37 +340,28 @@ namespace GameModel
 
 					if(!m_board.Pieces.Contains(_bufferPiece)) // If that Square IS EMPTY
 					{
-						ActionList.Add(ActionType.Move);
-						break;
+						actionList.Add(ActionType.Move);
 					}
 				}
 			} // endof Tetrastre
 
 			else if(pieceState.Piece.Type == PieceType.Pentaglobe)
 			{
-				Action _actionBuff;
-
-
 				if(power)
 				{
-					_actionBuff = m_ActionStack.Peek();
+					Action _actionBuff = m_actionStack.Peek();
 
 					// If the Pentaglobe is powerful and has just swapped position with an allied Globule
 					if(_actionBuff.PieceState == pieceState && _actionBuff.TargetState.Piece.Type == PieceType.Globule
-					&& _actionBuff.TargetState.Piece.Color == pieceState.Piece.Color)
-						ActionList.Add(ActionType.DeleteLastSwapped);
-
+					   && _actionBuff.TargetState.Piece.Color == pieceState.Piece.Color)
+						actionList.Add(ActionType.DeleteLastSwapped);
 				}
-
-				foreach(PieceState item in m_board.Pieces)
+				
+				if (m_board.Pieces.Any(item => item.Piece.Type != PieceType.Pentaglobe && item.Piece.Color == pieceState.Piece.Color))
 				{
-					// If there's any ally other than Pentaglobe on the board
-					if(item.Piece.Type != PieceType.Pentaglobe && item.Piece.Color == pieceState.Piece.Color)
-					{
-						ActionList.Add(ActionType.Move); // Swap
-						break;
-					}
+					actionList.Add(ActionType.Swap);
 				}
+
 			} // endof Pentaglobe
 
 			else if(pieceState.Piece.Type == PieceType.Pentastre)
@@ -370,7 +380,7 @@ namespace GameModel
 					if(_bufferPiece == null
 					|| power && _bufferPiece.Piece.Type == PieceType.Pentastre && _bufferPiece.Piece.Color != pieceState.Piece.Color)
 					{
-						ActionList.Add(ActionType.Move);
+						actionList.Add(ActionType.Move);
 					}
 				}
 			} // endof Pentastre
@@ -379,7 +389,8 @@ namespace GameModel
 			{
 				sqrAround.Clear();
 
-				sqrAround = Square.GetSquaresAround(pieceState.Square, true);
+				// ReSharper disable once ArgumentsStyleLiteral
+				sqrAround = Square.GetSquaresAround(pieceState.Square, diagonal:true);
 			
 				List<Square> _sqrToRemove = new List<Square>();
 
@@ -405,16 +416,13 @@ namespace GameModel
 
 					if(_bufferPiece == null)
 					{
-						ActionList.Add(ActionType.Move);
-						break;
+						actionList.Add(ActionType.Move);
 					}
 				}
 			} // endof Rosace
 
 			else if(pieceState.Piece.Type == PieceType.Astree)
 			{
-				ActionList.Add(ActionType.Create);
-
 				sqrAround.Clear();
 
 				sqrAround = Square.GetSquaresAround(pieceState.Square, true);
@@ -454,8 +462,7 @@ namespace GameModel
 							// If the Square is empty or contains an enemy, it is a legal move
 							if(sqrAroundAround.Contains(_bufferSquare))
 							{
-								ActionList.Add(ActionType.Move);
-								break;
+								actionList.Add(ActionType.Move);
 							}
 						}
 						
@@ -466,10 +473,9 @@ namespace GameModel
 							_bufferSquare.Y = nxtSqrItem.Y;
 
 							// If the Square is empty or contains an enemy, it is a legal move
-							if(sqrAroundAround.Contains(_bufferSquare))
+							if(sqrAroundAround.Contains(_bufferSquare) && !actionList.Contains(ActionType.Move))
 							{
-								ActionList.Add(ActionType.Move);
-								break;
+								actionList.Add(ActionType.Move);
 							}
 						}
 
@@ -480,9 +486,9 @@ namespace GameModel
 							_bufferSquare.Y = nxtSqrItem.Y+1; // Going top
 
 							// If the Square is empty or contains an enemy, it is a legal move
-							if(sqrAroundAround.Contains(_bufferSquare))
+							if(sqrAroundAround.Contains(_bufferSquare) && !actionList.Contains(ActionType.Move))
 							{
-								ActionList.Add(ActionType.Move);
+								actionList.Add(ActionType.Move);
 								break;
 							}
 						}
@@ -494,9 +500,9 @@ namespace GameModel
 							_bufferSquare.Y = nxtSqrItem.Y-1; // Going down
 
 							// If the Square is empty or contains an enemy, it is a legal move
-							if(sqrAroundAround.Contains(_bufferSquare))
+							if(sqrAroundAround.Contains(_bufferSquare) && !actionList.Contains(ActionType.Move))
 							{
-								ActionList.Add(ActionType.Move);
+								actionList.Add(ActionType.Move);
 								break;
 							}
 						}
@@ -508,9 +514,9 @@ namespace GameModel
 							_bufferSquare.Y = nxtSqrItem.Y+1; // Going top
 
 							// If the Square is empty or contains an enemy, it is a legal move
-							if(sqrAroundAround.Contains(_bufferSquare))
+							if(sqrAroundAround.Contains(_bufferSquare) && !actionList.Contains(ActionType.Move))
 							{
-								ActionList.Add(ActionType.Move);
+								actionList.Add(ActionType.Move);
 								break;
 							}
 						}
@@ -522,10 +528,9 @@ namespace GameModel
 							_bufferSquare.Y = nxtSqrItem.Y; // Going top
 
 							// If the Square is empty or contains an enemy, it is a legal move
-							if(sqrAroundAround.Contains(_bufferSquare))
+							if(sqrAroundAround.Contains(_bufferSquare) && !actionList.Contains(ActionType.Move))
 							{
-								ActionList.Add(ActionType.Move);
-								break;
+								actionList.Add(ActionType.Move);
 							}
 						}
 						
@@ -536,10 +541,9 @@ namespace GameModel
 							_bufferSquare.Y = nxtSqrItem.Y; // Going down
 
 							// If the Square is empty or contains an enemy, it is a legal move
-							if(sqrAroundAround.Contains(_bufferSquare))
+							if(sqrAroundAround.Contains(_bufferSquare) && !actionList.Contains(ActionType.Move))
 							{
-								ActionList.Add(ActionType.Move);
-								break;
+								actionList.Add(ActionType.Move);
 							}
 						}
 
@@ -550,22 +554,370 @@ namespace GameModel
 							_bufferSquare.Y = nxtSqrItem.Y; // Going down
 
 							// If the Square is empty or contains an enemy, it is a legal move
-							if(sqrAroundAround.Contains(_bufferSquare))
+							if(sqrAroundAround.Contains(_bufferSquare) && !actionList.Contains(ActionType.Move))
 							{
-								ActionList.Add(ActionType.Move);
-								break;
+								actionList.Add(ActionType.Move);
 							}
 						}
 					}
 				}	
 
+				actionList.Add(ActionType.Create);
 			} // endof Astree
 
-			return ActionList;
+			actionList.Reverse();
+			return actionList;
 		} // endof GetPossibleActions()
 
+		// Returns a list of legal squares for 'piece' to perform 'action' (For square highlighting purpose)
+		public List<Square> GetLegalSquares(ActionType action, Piece piece, bool power = false)
+		{
+			List<Square> legalSquares = new List<Square>();
+			
+			// ReSharper disable once InconsistentNaming
+			PieceState _bufferPiece = m_board.GetPieceState(piece);
+			
+			Square startSqr = _bufferPiece.Square;
+			Intersection startIntr = _bufferPiece.Intersection;
+
+			Square checkingSqr = startSqr;
+			Intersection checkingIntr = startIntr;
+			
+			if (action == ActionType.Move)
+			{
+				// Testing UP
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.Y++;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.B++;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+
+				// Going back to our starting position
+				checkingSqr = startSqr;
+				checkingIntr = startIntr;
+				
+				// Testing DOWN
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.Y--;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.B--;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+				
+				// Going back to our starting position
+				checkingSqr = startSqr;
+				checkingIntr = startIntr;
+				
+				// Testing RIGHT
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.X++;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.A++;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+				
+				// Going back to our starting position
+				checkingSqr = startSqr;
+				checkingIntr = startIntr;
+				
+				// Testing LEFT
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.X--;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.A--;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+				
+				// Going back to our starting position
+				checkingSqr = startSqr;
+				checkingIntr = startIntr;
+				
+				// Testing UP-RIGHT
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.Y++;
+						checkingSqr.X++;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.B++;
+						checkingIntr.A++;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+				
+				// Going back to our starting position
+				checkingSqr = startSqr;
+				checkingIntr = startIntr;
+				
+				// Testing UP-LEFT
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.Y++;
+						checkingSqr.X--;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.B++;
+						checkingIntr.A--;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+				
+				// Going back to our starting position
+				checkingSqr = startSqr;
+				checkingIntr = startIntr;
+				
+				// Testing DOWN-RIGHT
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.Y--;
+						checkingSqr.X++;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.B--;
+						checkingIntr.A++;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+				
+				// Going back to our starting position
+				checkingSqr = startSqr;
+				checkingIntr = startIntr;
+				
+				// Testing DOWN-LEFT
+				while (true)
+				{
+					if (piece.Type != PieceType.Tetraglobe)
+					{
+						checkingSqr.Y--;
+						checkingSqr.X--;
+						if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+							legalSquares.Add(checkingSqr);
+						else
+							break;
+					}
+					else
+					{
+						checkingIntr.B--;
+						checkingIntr.A--;
+						if (CheckMoveIsValid(piece, startIntr, checkingIntr, power))
+							legalSquares.AddRange(checkingIntr.ToSquares);
+						else
+							break;
+					}
+				}
+			}
+			
+			else if (action == ActionType.Create)
+			{
+				// Checking UP
+				checkingSqr = startSqr;
+				checkingSqr.Y++;
+				if(CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+
+				// Checking DOWN
+				checkingSqr = startSqr;
+				checkingSqr.Y--;
+				if(CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+				
+				// Checking RIGHT
+				checkingSqr = startSqr;
+				checkingSqr.X++;
+				if(CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+				
+				// Checking LEFT
+				checkingSqr = startSqr;
+				checkingSqr.X--;
+				if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+				
+				// Checking UP-RIGHT
+				checkingSqr = startSqr;
+				checkingSqr.Y++;
+				checkingSqr.X++;
+				if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+				
+				// Checking UP-LEFT
+				checkingSqr = startSqr;
+				checkingSqr.Y++;
+				checkingSqr.X--;
+				if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+				
+				// Checking DOWN-RIGHT
+				checkingSqr = startSqr;
+				checkingSqr.Y--;
+				checkingSqr.X++;
+				if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+				
+				// Checking DOWN-LEFT
+				checkingSqr = startSqr;
+				checkingSqr.Y--;
+				checkingSqr.X--;
+				if (CheckMoveIsValid(piece, startSqr, checkingSqr, power))
+					legalSquares.Add(checkingSqr);
+			}
+			
+			else if (action == ActionType.Transform)
+			{	
+				// Checking for another Globule UP
+				checkingSqr = startSqr;
+				checkingSqr.Y++;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+				
+				// Checking for another Globule DOWN
+				checkingSqr = startSqr;
+				checkingSqr.Y--;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+				
+				// Checking for another Globule RIGHT
+				checkingSqr = startSqr;
+				checkingSqr.X++;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+				
+				// Checking for another Globule LEFT
+				checkingSqr = startSqr;
+				checkingSqr.X--;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+				
+				// Checking for another Globule UP-RIGHT
+				checkingSqr = startSqr;
+				checkingSqr.Y++;
+				checkingSqr.X++;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+				
+				// Checking for another Globule UP-LEFT
+				checkingSqr = startSqr;
+				checkingSqr.Y++;
+				checkingSqr.X--;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+				
+				// Checking for another Globule DOWN-RIGHT
+				checkingSqr = startSqr;
+				checkingSqr.Y--;
+				checkingSqr.X++;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+				
+				// Checking for another Globule DOWN-LEFT
+				checkingSqr = startSqr;
+				checkingSqr.Y--;
+				checkingSqr.X--;
+				if (m_board.GetPieceOnSqr(checkingSqr) != null)
+					legalSquares.Add(checkingSqr);
+			}
+			
+			else if (action == ActionType.Swap)
+			{
+				// Returning all allies positions :)
+				foreach (PieceState item in m_board.Pieces)
+				{
+					if (item.Piece.Color == piece.Color)
+						if (item.Piece.Type != PieceType.Tetraglobe)
+							legalSquares.Add(item.Square);
+						else
+							legalSquares.AddRange(item.Intersection.ToSquares);
+				}
+			}
+			
+			return legalSquares;
+		}
+		
 		// HACK: Rosace's second move has the same rules behaviour as the Globule ;)
-		public bool CheckMoveIsValid(Piece piece, Square fromSqr, Square toSqr, bool power)
+		private bool CheckMoveIsValid(Piece piece, Square fromSqr, Square toSqr, bool power)
 		{
 			// First checking if user input is correct. (i.e. within the board boundaries)
 			if(toSqr.X > 7 || toSqr.X < 0 || toSqr.Y > 7 || toSqr.Y < 0)
@@ -583,13 +935,12 @@ namespace GameModel
 				return false;
 
 			//if no piece between fromSqr and toSqr AND no piece on toSqr AND no trigger problems
-			else
-				return true;
+			return true;
 
 		} // endof CheckMoveIsValid(Piece, Square, Square, bool)
 
 		// Used to move Tetraglobes
-		public bool CheckMoveIsValid(Piece piece, Intersection fromIntr, Intersection toIntr, bool power)
+		private bool CheckMoveIsValid(Piece piece, Intersection fromIntr, Intersection toIntr, bool power)
 		{
 			// Checking if toIntr is within the board boundaries
 			if(toIntr.A >= 6 || toIntr.A <= 0 || toIntr.B >= 6 || toIntr.B <= 0)
@@ -601,20 +952,20 @@ namespace GameModel
 			fromSqrs[0].X = fromIntr.A;
 			fromSqrs[0].Y = fromIntr.B;
 			fromSqrs[1].X = fromIntr.A;
-			fromSqrs[1].Y = (fromIntr.B+1);
-			fromSqrs[2].X = (fromIntr.A+1);
+			fromSqrs[1].Y = fromIntr.B+1;
+			fromSqrs[2].X = fromIntr.A+1;
 			fromSqrs[2].Y = fromIntr.B;
-			fromSqrs[3].X = (fromIntr.A+1);
-			fromSqrs[3].Y = (fromIntr.B+1);
+			fromSqrs[3].X = fromIntr.A+1;
+			fromSqrs[3].Y = fromIntr.B+1;
 
 			toSqrs[0].X = toIntr.A;
 			toSqrs[0].Y = toIntr.B;
 			toSqrs[1].X = toIntr.A;
-			toSqrs[1].Y = (toIntr.B+1);
-			toSqrs[2].X = (toIntr.A+1);
+			toSqrs[1].Y = toIntr.B+1;
+			toSqrs[2].X = toIntr.A+1;
 			toSqrs[2].Y = toIntr.B;
-			toSqrs[3].X = (toIntr.A+1);
-			toSqrs[3].Y = (toIntr.B+1);
+			toSqrs[3].X = toIntr.A+1;
+			toSqrs[3].Y = toIntr.B+1;
 
 			for(int i = 0; i < 4; i++)
 			{
@@ -654,18 +1005,18 @@ namespace GameModel
 						case PieceType.Pentaglobe:
 							break;
 						case PieceType.Tetrastre:
-							if((fromSqr.X % 2) == 0) //if fromSqr is even
+							if(fromSqr.X % 2 == 0) //if fromSqr is even
 							{
-								if(otherState.Square.X == fromSqr.X && (otherState.Square.Y % 2) != 0) //if on the same row and has odd column
+								if(otherState.Square.X == fromSqr.X && otherState.Square.Y % 2 != 0) //if on the same row and has odd column
 									return true;
-								else if(otherState.Square.Y == fromSqr.Y && (otherState.Square.X % 2) != 0) //if on the same column and has odd row
+								if(otherState.Square.Y == fromSqr.Y && otherState.Square.X % 2 != 0) //if on the same column and has odd row
 									return true;
 							}
 							else //if fromSqr is odd
 							{
-								if(otherState.Square.X == fromSqr.X && (otherState.Square.Y % 2) == 0) //if on the same row and has even column
+								if(otherState.Square.X == fromSqr.X && otherState.Square.Y % 2 == 0) //if on the same row and has even column
 									return true;
-								else if(otherState.Square.Y == fromSqr.X && (otherState.Square.Y % 2) == 0) //if on the same colum and has even row
+								if(otherState.Square.Y == fromSqr.X && otherState.Square.Y % 2 == 0) //if on the same colum and has even row
 									return true;
 							}
 							return false;
@@ -676,8 +1027,8 @@ namespace GameModel
 						case PieceType.Rosace:
 							return false;
 						case PieceType.Astree:
-							if(toSqr.X > (otherState.Square.X + 1) || toSqr.X < (otherState.Square.X - 1)
-								|| toSqr.Y > (otherState.Square.Y + 1) || toSqr.Y < (otherState.Square.Y - 1))
+							if(toSqr.X > otherState.Square.X + 1 || toSqr.X < otherState.Square.X - 1
+								|| toSqr.Y > otherState.Square.Y + 1 || toSqr.Y < otherState.Square.Y - 1)
 								return true;
 							return false;
 						default:
@@ -698,12 +1049,12 @@ namespace GameModel
 						case PieceType.Triglobe:
 							if(power)
 							{
-								if(toSqr.X > (fromSqr.X + 1) || toSqr.X < (fromSqr.X - 1)
-									|| toSqr.Y > (fromSqr.Y + 1) || toSqr.Y < (fromSqr.Y - 1))
+								if(toSqr.X > fromSqr.X + 1 || toSqr.X < fromSqr.X - 1
+									|| toSqr.Y > fromSqr.Y + 1 || toSqr.Y < fromSqr.Y - 1)
 									return false;
 							}
-							if(toSqr.X == (fromSqr.X + 1) || toSqr.X == (fromSqr.X - 1)
-								|| toSqr.Y == (fromSqr.Y + 1) || toSqr.Y == (fromSqr.Y - 1))
+							if(toSqr.X == fromSqr.X + 1 || toSqr.X == fromSqr.X - 1
+								|| toSqr.Y == fromSqr.Y + 1 || toSqr.Y == fromSqr.Y - 1)
 								return true;
 							return false;
 						case PieceType.Tetraglobe:
@@ -731,8 +1082,7 @@ namespace GameModel
 				{
 					if(piece.Type == PieceType.Pentaglobe && otherState.Piece.Type != PieceType.Pentaglobe)
 						return true;
-					else
-						return false;
+					return false;
 				}
 			} // endof 'foreach(PieceState otherState in m_board.Pieces)'
 
@@ -767,24 +1117,24 @@ namespace GameModel
 		// 'pieceState' reprensents the piece PERFORMING the action
 		public void StackAction(PieceState pieceState, Square fromSqr, Square toSqr, ActionType actionType)
 		{
-			m_ActionStack.Push(new Action(pieceState, fromSqr, toSqr, actionType));
+			m_actionStack.Push(new Action(pieceState, fromSqr, toSqr, actionType));
 		}
 
 		public void StackAction(PieceState pieceState, Intersection fromIntr, Intersection toIntr, ActionType actionType)
 		{
-			m_ActionStack.Push(new Action(pieceState, fromIntr, toIntr, actionType));
+			m_actionStack.Push(new Action(pieceState, fromIntr, toIntr, actionType));
 		}
 
 		public void StackAction(Piece piece, Square fromSqr, Square toSqr, ActionType actionType)
 		{
 			PieceState _bufferPiece = m_board.GetPieceState(piece);
-			m_ActionStack.Push(new Action(_bufferPiece, fromSqr, toSqr, actionType));
+			m_actionStack.Push(new Action(_bufferPiece, fromSqr, toSqr, actionType));
 		}
 
 		public void StackAction(Piece piece, Intersection fromIntr, Intersection toIntr, ActionType actionType)
 		{
 			PieceState _bufferPiece = m_board.GetPieceState(piece);
-			m_ActionStack.Push(new Action(_bufferPiece, fromIntr, toIntr, actionType));
+			m_actionStack.Push(new Action(_bufferPiece, fromIntr, toIntr, actionType));
 		}
 
 		// FIXME: This need a dedicated file
@@ -792,13 +1142,13 @@ namespace GameModel
 		// This class will be used to store previously done actions, permitting to undo and redo moves or just access them
 		protected class Action
 		{
-			PieceState m_pieceState; // Piece PERFORMING the action
-			PieceState m_targetState;  // Possible Piece RECEIVING the action
-			Square m_fromSqr;
-			Square m_toSqr;
-			Intersection m_fromIntr;
-			Intersection m_toIntr;
-			ActionType m_actionType;
+			private PieceState m_pieceState; // Piece PERFORMING the action
+			private PieceState m_targetState;  // Possible Piece RECEIVING the action
+			private Square m_fromSqr;
+			private Square m_toSqr;
+			private Intersection m_fromIntr;
+			private Intersection m_toIntr;
+			private ActionType m_actionType;
 
 			public Action()
 			{

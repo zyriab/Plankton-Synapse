@@ -1,7 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace GameModel
 {
@@ -9,9 +8,11 @@ namespace GameModel
 	// Also provides all Pieces' interactions
 	public class Board
 	{
-		List<PieceState> m_pieces;
-		List<Square> m_triggeredSquares;
+		private List<PieceState> m_pieces;
+		private List<Square> m_triggeredSquares;
 
+		private PieceState m_lastSwappedPiece;
+		
 		public Board()
 		{
 			m_pieces = new List<PieceState>();
@@ -26,7 +27,7 @@ namespace GameModel
 			List<Square> freeSqrList = new List<Square>();
 
 			if(intrListBuffer == null)
-				Debug.WriteLine(string.Format("Error in Board.cs, l:41 : decl. l:39. Intersection.GetBySquare(sqr) has returned a null value"));
+				Debug.WriteLine("Error in Board.cs, l:41 : decl. l:39. Intersection.GetBySquare(sqr) has returned a null value");
 
 			for(int i = 0; i < intrListBuffer.Count; i++)
 			{
@@ -41,8 +42,7 @@ namespace GameModel
 
 			if(freeSqrList.Count != 0)
 				return freeSqrList;
-			else
-				return null;
+			return null;
 		}
 
 		// Return a List of pieceless Squares around a given Intersection
@@ -54,7 +54,7 @@ namespace GameModel
 			PieceState pBuffer; // Will be used to temporarily store a given PieceState, needed to access Squares
 
 			if(sqrListBuffer == null)
-				Debug.WriteLine(string.Format("Error in Board.cs, l:65 : decl. l:63.Intersection.GetBySquare(sqr) has returned a null value"));
+				Debug.WriteLine("Error in Board.cs, l:65 : decl. l:63.Intersection.GetBySquare(sqr) has returned a null value");
 
 			for(int i = 0; i < sqrListBuffer.Count; i++)
 			{	
@@ -68,8 +68,7 @@ namespace GameModel
 
 			if(freeSqrList.Count != 0)
 				return freeSqrList;
-			else
-				return null;
+			return null;
 		}
 
 		// Return a List of pieceless Intersections around a given Square
@@ -83,7 +82,7 @@ namespace GameModel
 			PieceState pBuffer;
 
 			if(intrListBuffer == null)
-				Debug.WriteLine(string.Format("Error in Board.cs, l:91 : decl. l:88. Intersection.GetBySquare(sqr) has returned a null value"));
+				Debug.WriteLine("Error in Board.cs, l:91 : decl. l:88. Intersection.GetBySquare(sqr) has returned a null value");
 
 			for(int i = 0; i < intrListBuffer.Count; i++) // Getting four Lists of four Squares
 			{
@@ -105,8 +104,7 @@ namespace GameModel
 
 			if(freeIntrList.Count != 0)
 				return freeIntrList;
-			else
-				return null;
+			return null;
 		}
 
 		// Returns a List of free intersection around a given one, movingPiece is in case we're moving a Tetraglobe
@@ -149,8 +147,7 @@ namespace GameModel
 
 			if(freeIntrList.Count != 0)
 				return freeIntrList;
-			else
-				return null;
+			return null;
 		}
 
 		// Place given Piece on given Square
@@ -311,7 +308,7 @@ namespace GameModel
 					return item;
 			}
 
-			Debug.WriteLine(string.Format("GetPieceState(PieceState) : PieceState {0} does not exist in List<PieceState> m_pieces.", piece.ToString()));
+			Debug.WriteLine("GetPieceState(PieceState) : PieceState {0} does not exist in List<PieceState> m_pieces.", piece);
 
 			return null;
 		}
@@ -328,7 +325,7 @@ namespace GameModel
 			}
 
 
-			Debug.WriteLine(string.Format("GetPieceState(Piece) : No PieceState containing {0} exists in List<PieceState> m_pieces.", piece.ToString()));
+			Debug.WriteLine("GetPieceState(Piece) : No PieceState containing {0} exists in List<PieceState> m_pieces.", piece);
 
 			return null;
 		}
@@ -343,7 +340,7 @@ namespace GameModel
 			}
 
 
-			Debug.WriteLine(string.Format("GetPieceState(Square) : No PieceState containing {0} exists in List<PieceState> m_pieces.", sqr.ToString()));
+			Debug.WriteLine("GetPieceState(Square) : No PieceState containing {0} exists in List<PieceState> m_pieces.", sqr);
 
 			return null;
 		}
@@ -357,7 +354,7 @@ namespace GameModel
 					return item;		
 			}
 
-			Debug.WriteLine(string.Format("GetPieceState(Intersection) : No PieceState containing {0} exists in List<PieceState> m_pieces.", intr.ToString()));
+			Debug.WriteLine("GetPieceState(Intersection) : No PieceState containing {0} exists in List<PieceState> m_pieces.", intr);
 
 			return null;
 		}
@@ -367,7 +364,7 @@ namespace GameModel
 		{
 			foreach(PieceState item in m_pieces)
 			{
-				if(isTetraglobe == true)
+				if(isTetraglobe)
 				{
 					if(item.Intersection.A == x && item.Intersection.B == y)
 						return item;
@@ -377,9 +374,24 @@ namespace GameModel
 					return item;
 			}
 
-			Debug.WriteLine(string.Format("GetPieceState(int, int, bool) : No PieceState containing Square({0}, {1}) exists in List<PieceState> m_pieces.", x.ToString(), y.ToString()));
+			Debug.WriteLine("GetPieceState(int, int, bool) : No PieceState containing Square({0}, {1}) exists in List<PieceState> m_pieces.", x, y);
 
 			return null;
+		}
+		
+		// Get Piece on Square -- returns null if empty
+		public Piece GetPieceOnSqr(Square sqr)
+		{
+			PieceState _bufferPiece = m_pieces.Find(x => x.Square == sqr);
+			return _bufferPiece.Piece;
+		}
+		
+		// Get Piece on Intersection -- returns null if empty
+		public Piece GetPieceOnIntr(Intersection intr)
+		{
+			PieceState _bufferPiece = m_pieces.Find(x => x.Intersection == intr);
+
+			return _bufferPiece.Piece;
 		}
 
 		// Get triggered square by Square
@@ -422,8 +434,7 @@ namespace GameModel
 
 			if(triggeredSquares.Count >= 1)
 				return triggeredSquares;
-			else
-				return null;
+			return null;
 		}
 
 		// Create a Globule on given Square

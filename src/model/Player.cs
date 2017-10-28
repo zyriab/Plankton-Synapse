@@ -1,69 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+// Represents a player, contains the player's color, name and his pieces
 namespace GameModel
-{
-	
-	// Represents a player, contains the player's color, name and his pieces
+{	
 	public class Player
 	{
-		Color m_color;
-		List<Piece> m_pieces;
-		String m_playerName;
-
 		public Player()
 		{
-			m_pieces = new List<Piece>();
+			Pieces = new List<Piece>();
 		}
 
 		public Player(Color color)
 		{
-			m_color = color;
-			m_pieces = new List<Piece>() {
-				new Piece(PieceType.Astree, m_color),
-				new Piece(PieceType.Astree, m_color),
-				new Piece(PieceType.Rosace, m_color),
-				new Piece(PieceType.Rosace, m_color),
-				new Piece(PieceType.Pentaglobe, m_color),
-				new Piece(PieceType.Pentaglobe, m_color),
-				new Piece(PieceType.Tetraglobe, m_color),
-				new Piece(PieceType.Pentastre, m_color),
-				new Piece(PieceType.Pentastre, m_color),
-				new Piece(PieceType.Tetrastre, m_color),
-				new Piece(PieceType.Tetrastre, m_color)
+			Color = color;
+			Pieces = new List<Piece>
+			{
+				new Piece(PieceType.Astree, Color),
+				new Piece(PieceType.Astree, Color),
+				new Piece(PieceType.Rosace, Color),
+				new Piece(PieceType.Rosace, Color),
+				new Piece(PieceType.Pentaglobe, Color),
+				new Piece(PieceType.Pentaglobe, Color),
+				new Piece(PieceType.Tetraglobe, Color),
+				new Piece(PieceType.Pentastre, Color),
+				new Piece(PieceType.Pentastre, Color),
+				new Piece(PieceType.Tetrastre, Color),
+				new Piece(PieceType.Tetrastre, Color)
 			};
 
 				for(int i=0;i<=10;++i)
-					m_pieces.Add(new Piece(PieceType.Globule, m_color));
+					Pieces.Add(new Piece(PieceType.Globule, Color));
 		}
 
 		public void RemovePiece(Piece piece)
 		{
-			m_pieces.Remove(piece);
+			Pieces.Remove(piece);
 		}
 
-		public List<Piece> Pieces
-		{
-			get
-			{
-				return m_pieces;
-			}
-			set
-			{
-				m_pieces = value;
-			}
-		}
-
-		public Color Color
-		{
-			get {return m_color;}
-			set {m_color = value;}
-		}
-
-		public String Name
-		{
-			get {return m_playerName;}
-			set {m_playerName = value;}
-		}
+		public List<Piece> Pieces { get; set; }
+		public Color Color { get; set; }
+		public string Name { get; set; }
+		
 	} // endof class Player
 } // endof namespace GameModel

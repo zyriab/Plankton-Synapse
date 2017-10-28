@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace GameModel
 {
@@ -10,8 +9,8 @@ namespace GameModel
 	// But using alphabet (a = between 1 & 2, b = 2 & 3, ...)
 	public class Intersection
 	{
-		int m_a;
-		int m_b;
+		private int m_a;
+		private int m_b;
 
 		public Intersection()
 		{
@@ -129,7 +128,7 @@ namespace GameModel
 		{
 			get
 			{
-				List<Square> squareCoord = this.ToSquares;
+				List<Square> squareCoord = ToSquares;
 
 				if(squareCoord != null)
 					return squareCoord;

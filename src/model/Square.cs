@@ -8,10 +8,10 @@ namespace GameModel
 	// It only contains its own coordinates and can be triggered
 	public class Square
 	{
-		int m_x;
-		int m_y;
-		Trigger m_trigger;
-		Color m_triggerColor;
+		private int m_x;
+		private int m_y;
+		private Trigger m_trigger;
+		private Color m_triggerColor;
 
 		public enum Trigger {None, Stop, Shield};
 
@@ -87,7 +87,7 @@ namespace GameModel
 			string strX = Convert.ToString(Convert.ToChar(m_x + 65));
 			string strY = Convert.ToString(Convert.ToChar(m_y + 65));
 
-			if(this.TriggerType != Square.Trigger.None)
+			if(TriggerType != Square.Trigger.None)
 				return string.Format("{0},{1} [Square effect]: {2}", strX, strY, GetString.GetStr(m_trigger));
 			else
 				return string.Format("{0},{1}", strX, strY);
@@ -203,7 +203,7 @@ namespace GameModel
 			if((Object)sqr == null)
 				return false;
 
-			return (this.X == sqr.X) && (this.Y == sqr.Y);
+			return (X == sqr.X) && (Y == sqr.Y);
 		}
 
 		public override int GetHashCode()

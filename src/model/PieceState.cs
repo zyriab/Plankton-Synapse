@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace GameModel
 {
@@ -8,14 +8,16 @@ namespace GameModel
 	// The piece itself, its state (dead or alive) and its current position
 	public class PieceState
 	{
-		Piece m_piece;
-		bool m_isActive;
-		Square m_square;
-		List<Square> m_squareList; //if Tetraglobe
-		Intersection m_intersection;
-
-		bool m_hasFreeMove;
-
+		private Square m_square;
+		private Intersection m_intersection;
+		private List<Square> m_squareArray;
+		
+		private Piece m_piece;
+		
+		private bool m_isActive;
+		private bool m_hasFreeMove;
+		
+		
 		public PieceState()
 		{
 			m_square = new Square(-1,-1);
@@ -27,10 +29,6 @@ namespace GameModel
 			m_isActive = true;
 			m_hasFreeMove = false;
 
-
-//			if(piece.Type != PieceType.Empty)
-//				m_isActive = true;
-
 			m_piece = piece;
 			m_square = square;
 		}
@@ -40,56 +38,22 @@ namespace GameModel
 			m_isActive = true;
 			m_hasFreeMove = false;
 
-
-//			if(piece.Type != PieceType.Empty)
-//				m_isActive = true;
-
 			m_piece = piece;
 			m_intersection = intr;
-			m_squareList = new List<Square>();
+			m_squareArray = new List<Square>();
 
 			// HOLY CODE : Defines which squares are actually occupied by the Tetraglobe on intersection 'A,B'
-			m_squareList.Add(new Square(intr.A, intr.B) );
-			m_squareList.Add( new Square(intr.A, (intr.B+1)) );
-			m_squareList.Add( new Square((intr.A+1), intr.B) );
-			m_squareList.Add( new Square((intr.A+1), (intr.B+1)) );
+			m_squareArray.Add(new Square(intr.A, intr.B) );
+			m_squareArray.Add( new Square(intr.A, intr.B+1) );
+			m_squareArray.Add( new Square(intr.A+1, intr.B) );
+			m_squareArray.Add( new Square(intr.A+1, intr.B+1) );
 		}
 
-		public Piece Piece
-		{
-			get
-			{
-				return m_piece;
-			}
-			set
-			{
-				m_piece = value;
-			}
-		}
+		public Piece Piece { get; set; }
 
-		public bool IsActive
-		{
-			get
-			{
-				return m_isActive;
-			}
-			set
-			{
-				m_isActive = value;
-			}
-		}
+		public bool IsActive { get; set; }
 
-		public Square Square
-		{
-			get
-			{
-				return m_square;
-			}
-			set
-			{
-				m_square = value;
-			}
-		}
+		public Square Square { get; set; }
 
 		public Intersection Intersection
 		{
@@ -100,27 +64,12 @@ namespace GameModel
 			set
 			{
 				m_intersection = value;
-				m_squareList = value.ToSquares;
+				SquareArray = value.ToSquares;
 			}
 		}
 
-		public List<Square> SquareArray
-		{
-			get
-			{
-				return m_squareList;
-			}
-			set
-			{
-				m_squareList = value;
-			}
-		}
+		public List<Square> SquareArray { get; set; }
 
-		public bool HasFreeMove
-		{
-			get {return m_hasFreeMove;}
-			set {m_hasFreeMove = value;}
-		}
-
+		public bool HasFreeMove { get; set; }
 	} //endof class PieceState
 } // endof namepsace GameModel

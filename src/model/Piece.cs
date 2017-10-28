@@ -1,17 +1,14 @@
-﻿using System;
-
-
-namespace GameModel
+﻿namespace GameModel
 {
 	// Represents a piece, contains its type and color
 	public class Piece
 	{
-		PieceType m_type;
-		Color m_color;
+		private PieceType m_type;
+		private Color m_color;
 
 		// Will be used to count the number of moves a given piece has performed
 		// This will be reseted every turn
-		int m_moveCounter = 0;
+		private int m_moveCounter = 0;
 
 		public Piece(PieceType type, Color color)
 		{
