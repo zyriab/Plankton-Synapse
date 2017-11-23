@@ -105,7 +105,9 @@ namespace GameView
             // Loading black square glowing sprite
             m_spriteGlow1 = Resources.Load<Sprite>(spriteName);
             if (m_spriteGlow1 == null)
-                return false;            
+                return false;
+
+            return true;
         }
 
         // Checks and uses the adapted sprite, regarding to the row+column alignment (meaning: the actual square color)
@@ -119,7 +121,7 @@ namespace GameView
         // When the mouse is pressed then released over the piece
         private void OnMouseUpAsButton()
         {
-            GamePresenter.IOManager.OnPieceClicked(this.m_piece);
+            AppManagers.IOManager.OnPieceClicked(this.m_piece);
         }
 
         /* ACCESSORS */

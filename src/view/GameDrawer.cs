@@ -9,7 +9,7 @@ namespace GameView
 	{
 		[SerializeField] private Board m_board;
 		// ReSharper disable once InconsistentNaming
-		[SerializeField] private UIManager m_UIManager;
+		[SerializeField] private GameObject m_squares;
 		
 		public void SetupBoard()
 		{
@@ -60,7 +60,9 @@ namespace GameView
 		/* ACCESSORS */
 		
 		public Board Board { get; set; }
-		public UIManager UiManager { get; set; }
+		// ReSharper disable once InconsistentNaming
+		public UIManager UIManager { get; set; }
+		public GameObject Squares { get; set; }
 		
 	} // endof class GameManager
 } // endof namespace GameView

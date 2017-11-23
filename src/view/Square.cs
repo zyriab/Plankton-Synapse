@@ -10,23 +10,31 @@ namespace GameView
 		private bool m_isTriggered;
 		private bool m_isHiglighted;
 
+		// When the square operates a a quarter of an intersection, holds a reference to that intersection
+		private GameView.Intersection m_intersection;
+
 		private Sprite m_normalSprite;
 		[SerializeField] private Sprite m_highLightSprite;
 		[SerializeField] private Sprite m_selectedSprite;
 
+		public Square(float x, float y)
+		{
+			m_x = x;
+			m_y = y;
+		}
+
+		public Square()
+		{
+			m_x = -1;
+			m_y = -1;
+		}
+
 		// Enable/Disable highlighting (for help purpose) of this square
 		public void SetHightlight()
 		{
-			if (m_isHiglighted)
-			{
-				m_isHiglighted = false;
-				this.GetComponent<SpriteRenderer>().sprite = m_normalSprite;
-			}
-			else
-			{
-				m_isHiglighted = true;
-				this.GetComponent<SpriteRenderer>().sprite = m_highLightSprite;
-			}
+			this.GetComponent<SpriteRenderer>().sprite = m_isHiglighted ? m_normalSprite : m_highLightSprite;
+
+			m_isHiglighted = !m_isHiglighted;
 		}
 
 		/* UNITY METHODS */
@@ -37,6 +45,8 @@ namespace GameView
 
 			m_isTriggered = false;
 			m_isHiglighted = false;
+			
+			m_intersection = new Intersection();
 
 			m_normalSprite = this.GetComponent<SpriteRenderer>().sprite;
 		}
@@ -61,9 +71,17 @@ namespace GameView
 		{
 			if (m_isHiglighted)
 			{
-				if(GamePresenter.IOManager.HasActionInQueue)
-					GamePresenter.IOManager.ExecutePendingAction();
+				if(AppManagers.IOManager.HasActionInQueue)
+					AppManagers.IOManager.ExecutePendingAction(this);
 			}
 		}
-	}
-}
+		
+		/* ACCESSORS */
+		
+		public float X { get; set; }
+		public float Y { get; set; }
+		public GameView.Intersection Intersection { get; set; }
+		public bool IsTriggered { get; set; }
+		public bool IsHiglighted { get; set; }
+	} // endof class Square
+} // endof namespace GameView

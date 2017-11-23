@@ -8,7 +8,7 @@ using UnityEngine;
 namespace GameView
 {	
 	public class Board : MonoBehaviour
-	{
+	{	
 		// Contains all pieces on the board
 		private List<GameObject> m_pieces;
 

@@ -11,12 +11,12 @@ namespace GameView
     public class UIManager : MonoBehaviour
     {
         // 0 = 1 action, 1 = 2 actions, 2 = 3 action, 3 = 4 actions
-        [SerializeField] private static GameObject[] m_menuArray = new GameObject[4];
+        [SerializeField] private GameObject[] m_menuArray = new GameObject[4];
         [SerializeField] private GameObject m_textArea;
         [SerializeField] private GameObject m_whiteCaptpuredPieces;
         [SerializeField] private GameObject m_blackCapturedPieces;
 
-        private static UIManager m_instance;
+        private UIManager m_instance;
 
         // Displays text inside the dedicated text scrollable area
         public void DisplayText(string str)
@@ -135,14 +135,14 @@ namespace GameView
         }
 
         // Opens an action menu (from 1 to 4 actions) on front/around a given piece, containing given actions
-        public static void OpenActionMenu(GameModel.Piece piece, List<ActionType> actions)
+        public void OpenActionMenu(GameModel.Piece piece, List<ActionType> actions)
         {
             int menuType = actions.Count - 1;
 
             // Setting buttons' sprites and tag
             for(int i = 0; i < menuType; i++)
             {
-                m_menuArray[menuType].transform.GetChild(i).GetComponent<ActionButton>().SetType(actions[i]);
+                m_menuArray[menuType].transform.GetChild(i).GetComponent<ActionButton>().Type = actions[i];
             }
 
             m_menuArray[menuType].transform.position = Board.Instance().GetPieceState(piece).transform.position + Vector3.one;
@@ -150,7 +150,7 @@ namespace GameView
         }
 
         // Closes any opened menu (normally only one menu can exist at a time, anyway)
-        public static void CloseActionMenu()
+        public void CloseActionMenu()
         {
             foreach (GameObject menu in m_menuArray)
             {
@@ -162,7 +162,10 @@ namespace GameView
         /* UNITY METHODS */
         private void Awake()
         {
-            m_instance = this;
+            if(m_instance == null)
+                m_instance = this;
+            if(m_instance != this)
+                Destroy(gameObject);
             
             foreach (GameObject item in m_menuArray)
                 item.SetActive(false);
@@ -180,7 +183,7 @@ namespace GameView
 
 
         /* ACCESSORS */
-        public static UIManager Instance()
+        public UIManager Instance()
         {
             if (!m_instance)
             {

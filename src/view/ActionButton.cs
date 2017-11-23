@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-// TODO: Add listeners (from presenter)
-
 // Represents a button (UnityEngine.UI) in the action menu
 // Clicking this button would call the Input/Ouput Manager (Presenter) to perform verifications & all about the action
 // Would then close the menu
@@ -71,8 +69,8 @@ namespace GameView
                 // Here we add the action to the queue (IOManager), then close the action menu
                 // QueueAction() will queue the action waiting then for the player to select a destination square
                 // Note that all the actions here have already been verified and are therefore legal
-                m_button.onClick.AddListener( () => { GamePresenter.IOManager.QueueAction(value); }); // calling presenter action-related method
-                m_button.onClick.AddListener(UIManager.CloseActionMenu); // closing action menu
+                m_button.onClick.AddListener( () => { AppManagers.IOManager.QueueAction(value); }); // calling presenter action-related method
+                m_button.onClick.AddListener(AppManagers.UIManager.CloseActionMenu); // closing action menu
             }
         }        
     } // endof class ActionButton
