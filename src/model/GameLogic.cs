@@ -6,16 +6,6 @@ public enum ActionType {Move, Create, Transform, Swap, DeleteThis, DeleteLastSwa
 public enum Color {Black, White}
 public enum GameState {InPlay, CheckMate, Pat}
 
-	
-	// TODO:
-	// (Prsntr?)- Implement/Figure out 'JumpPiece()' and automatic jump managing
-	// (Prsntr?)- Implement Game Over, etc
-	// (Prsntr) - Implement/Figure out 'StopPiece()' for trigger // Maybe StopPiece() and ProtectPiece() will be live managed by the board or Presenter ?
-	// (Prsntr) - Implement/Figure out 'ProtectPiece()' for trigger
-	// (Prsntr) - Implement/Figure out ErrorLog & GameLog (GameLog = Current moves summary)
-	// (Prsntr) - Implement/Figure out free moves and pass free moves !
-	//			- Implement/Figure out proper action system
-
 namespace GameModel
 {
 
@@ -109,6 +99,560 @@ namespace GameModel
 			return m_gameState;
 		}
 
+		// Checks if a given piece is powerful
+		public bool CheckPower(Piece piece)
+		{
+			if (piece.Type == PieceType.Astree)
+				return false;
+			
+			PieceState _bufferPiece = Board.GetPieceState(piece);
+			bool power = false;
+			
+			// Each astree inverts the power of each pieces
+			foreach (PieceState item in m_board.Pieces)
+			{
+				if (item.Piece.Type == PieceType.Astree)
+					power = !power;
+			}
+
+			if (piece.Type != PieceType.Tetraglobe)
+			{
+				Square _bufferPos = _bufferPiece.Square;
+
+				// Checking for Rosaces with no obstacles inbetween
+				
+				// RIGHT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X++;
+
+					if (_bufferPos.X > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+
+				// LEFT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X--;
+
+					if (_bufferPos.X < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+
+				// UP
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.Y++;
+
+					if (_bufferPos.Y > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+
+				// DOWN
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.Y--;
+
+					if (_bufferPos.X < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+
+				// UP-RIGHT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X++;
+					_bufferPos.Y++;
+
+					if (_bufferPos.X > 7 || _bufferPos.Y > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+
+				// UP-LEFT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X--;
+					_bufferPos.Y++;
+
+					if (_bufferPos.X < 0 || _bufferPos.Y > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+
+				// DOWN-RIGHT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X++;
+					_bufferPos.Y--;
+
+					if (_bufferPos.X > 7 || _bufferPos.Y < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+
+				// DOWN-LEFT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X--;
+					_bufferPos.Y--;
+
+					if (_bufferPos.X < 0 || _bufferPos.Y < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+						power = !power;
+				}
+
+				
+				// Checking for (powerful) Rosaces WITH obstacles inbetween				
+				
+				_bufferPos = _bufferPiece.Square;
+
+				// RIGHT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X++;
+
+					if (_bufferPos.X > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+				
+				// LEFT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X--;
+
+					if (_bufferPos.X < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+				
+				// UP
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.Y++;
+
+					if (_bufferPos.Y > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+				
+				// DOWN
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.Y--;
+
+					if (_bufferPos.X < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+				
+				// UP-RIGHT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X++;
+					_bufferPos.Y++;
+
+					if (_bufferPos.X > 7 || _bufferPos.Y > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+				
+				// UP-LEFT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X--;
+					_bufferPos.Y++;
+
+					if (_bufferPos.X < 0 || _bufferPos.Y > 7)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+				
+				// DOWN-RIGHT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X++;
+					_bufferPos.Y--;
+
+					if (_bufferPos.X > 7 || _bufferPos.Y < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+
+				_bufferPos = _bufferPiece.Square;
+				
+				// DOWN-LEFT
+				foreach (PieceState item in m_board.Pieces)
+				{
+					_bufferPos.X--;
+					_bufferPos.Y--;
+
+					if (_bufferPos.X < 0 || _bufferPos.Y < 0)
+						break;
+
+					if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+						power = !power;
+				}
+			}
+			
+			else if (piece.Type == PieceType.Tetraglobe)
+			{
+				Intersection _bufferIntr = _bufferPiece.Intersection;
+
+				// Checking for Rosaces with no obstacles inbetween
+				for (int i = 0; i < _bufferIntr.ToSquares.Count; i++)
+				{
+					Square _bufferPos = _bufferIntr.ToSquares[i];
+
+					// RIGHT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X++;
+
+						if (_bufferPos.X > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// LEFT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X--;
+
+						if (_bufferPos.X < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// UP
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.Y++;
+
+						if (_bufferPos.Y > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// DOWN
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.Y--;
+
+						if (_bufferPos.X < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// UP-RIGHT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X++;
+						_bufferPos.Y++;
+
+						if (_bufferPos.X > 7 || _bufferPos.Y > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// UP-LEFT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X--;
+						_bufferPos.Y++;
+
+						if (_bufferPos.X < 0 || _bufferPos.Y > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// DOWN-RIGHT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X++;
+						_bufferPos.Y--;
+
+						if (_bufferPos.X > 7 || _bufferPos.Y < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// DOWN-LEFT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X--;
+						_bufferPos.Y--;
+
+						if (_bufferPos.X < 0 || _bufferPos.Y < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type != PieceType.Rosace)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace)
+							power = !power;
+					}
+				}
+
+				// Checking for (powerful) Rosaces WITH obstacles inbetween				
+				for (int i = 0; i < _bufferIntr.ToSquares.Count; i++)
+				{
+					Square _bufferPos = _bufferIntr.ToSquares[i];
+
+					// RIGHT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X++;
+
+						if (_bufferPos.X > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// LEFT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X--;
+
+						if (_bufferPos.X < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// UP
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.Y++;
+
+						if (_bufferPos.Y > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// DOWN
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.Y--;
+
+						if (_bufferPos.X < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// UP-RIGHT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X++;
+						_bufferPos.Y++;
+
+						if (_bufferPos.X > 7 || _bufferPos.Y > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// UP-LEFT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X--;
+						_bufferPos.Y++;
+
+						if (_bufferPos.X < 0 || _bufferPos.Y > 7)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// DOWN-RIGHT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X++;
+						_bufferPos.Y--;
+
+						if (_bufferPos.X > 7 || _bufferPos.Y < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+					_bufferPos = _bufferIntr.ToSquares[i];
+
+					// DOWN-LEFT
+					foreach (PieceState item in m_board.Pieces)
+					{
+						_bufferPos.X--;
+						_bufferPos.Y--;
+
+						if (_bufferPos.X < 0 || _bufferPos.Y < 0)
+							break;
+
+						if (item.Square == _bufferPos && item.Piece.Type == PieceType.Rosace && CheckPower(item.Piece))
+							power = !power;
+					}
+
+				}
+			}
+
+
+			return power;
+		}
+		
 		// Returns a boolean value based on what is whithin the range of the desired transformation
 		// 'wantedPieceType' is mostly used to get a valid return value for a transformation to Tetraglobe
 		public bool CanTransform(Piece piece, PieceType wantedPieceType = PieceType.None)
@@ -1230,6 +1774,10 @@ namespace GameModel
 				set {m_actionType = value;}
 			}
 		} // endof class Action
-
+		
+		/* ACCESSORS */
+		
+		public Board Board { get; set; }
+		
 	} // endof class GameLogic
 } // endof namespace GameModel
