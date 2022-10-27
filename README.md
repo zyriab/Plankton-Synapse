@@ -1,5 +1,5 @@
 <p align="center"><img
-  src="https://www.wallenart.dev/src/images/plankton.sg"
+  src="https://www.wallenart.dev/src/images/plankton.svg"
   alt="plankton synapse logo" /></p>
  
  <p align="center">
