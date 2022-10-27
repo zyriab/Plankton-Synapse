@@ -1,6 +1,6 @@
 <p align="center"><img
   src="https://www.wallenart.dev/src/images/plankton.svg"
-  alt="nouvell logo" /></p>
+  alt="plankton synapse logo" /></p>
  
  <p align="center">
 <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/zyriabdsgn/plankton-synapse">
