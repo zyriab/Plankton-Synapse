@@ -13,7 +13,7 @@ In order to install/compile the game you need to install Unity and compile it fr
 
 # Usage
 
-You can find the latest build by [following this link](https://zyriabdsgn.github.io/Plankton-Synapse/)
+You can find the latest build by [following this link](https://zyriabdsgn.github.io/Plankton-Synapse/).
 
-**Only local 1v1 PvP is implemented**, you can [read the rules]() to understand how everything works.
+**Only local 1v1 PvP is implemented**, you can [read the rules](https://github.com/ZyriabDsgn/Plankton-Synapse/blob/2d9b0e0016d94ae4e94db0e3275a7049e0c3df64/rules.md) to understand how everything works.  
 Otherwise, the game highlights the possible moves.
