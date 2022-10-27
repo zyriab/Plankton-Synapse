@@ -7,6 +7,8 @@ Programming, software design and UX: Arthur Wallendorff
 
 Made with Unity, game logic mostly developed on a Sony Xperia e4g 🔥
 
+![gif of the game](https://github.com/ZyriabDsgn/Plankton-Synapse/blob/ed25c60166f00c37a43a6f758ac4b83de39d70a1/sprites/demo.gif)
+
 # Installation
 
 In order to install/compile the game you need to install Unity and compile it from there.
