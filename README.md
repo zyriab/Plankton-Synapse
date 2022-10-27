@@ -1,4 +1,11 @@
-# Plankton Synapse
+<p align="center"><img
+  src="https://www.wallenart.dev/src/images/plankton.svg"
+  alt="nouvell logo" /></p>
+ 
+ <p align="center">
+<img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/zyriabdsgn/plankton-synapse">
+<img alt="GitHub" src="https://img.shields.io/github/license/zyriabdsgn/plankton-synapse">
+</p>
 
 A turn-based strategy board game based on planktons and cellular reproduction.
 
