@@ -21,7 +21,6 @@ Otherwise, the game highlights the possible moves.
 # Game rules
 <details>
 <summary>Click to unwrap</summary>
-# Game rules
 
 ## The board
 
