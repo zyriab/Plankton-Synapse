@@ -1,6 +1,6 @@
 <p align="center"><img
   width="300"
-  src="https://www.wallenart.dev/src/images/plankton.svg"
+  src="logo.svg"
   alt="plankton synapse logo" /></p>
  
  <p align="center">
